@@ -1,25 +1,36 @@
 package com.crypto.exchange.service.impl;
 
+import com.crypto.exchange.annotations.BotCommand;
+import com.crypto.exchange.service.AbstractBaseHandler;
+import com.crypto.exchange.service.KeyboardButtonGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
-import java.util.Optional;
+
+import static com.crypto.exchange.Command.EXCHANGE;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MessageHandler {
+@BotCommand(command = EXCHANGE)
+public class MessageHandler extends AbstractBaseHandler {
 
-    public void handleMessage(Message message) {
-        if (message.hasText() && message.hasEntities()) {
+    private final KeyboardButtonGenerator buttonGenerator;
+
+    public void handle(Long userId, Long chatId, Integer messageId, String text) {
+        List<List<InlineKeyboardButton>> buttons = buttonGenerator.generateDefaultCurrenciesButtons(chatId);
+        publish(SendMessage.builder()
+                .text("Please choose Original and Target currencies")
+                .chatId(chatId.toString())
+                .replyMarkup(InlineKeyboardMarkup.builder().keyboard(buttons).build())
+                .build());
+/*        if (message.hasText() && message.hasEntities()) {
             Optional<MessageEntity> commandEntity = message.getEntities().stream().filter(e -> "bot_command".equals(e.getType())).findFirst();
 
             if (commandEntity.isPresent()) {
@@ -28,14 +39,15 @@ public class MessageHandler {
                 switch (command) {
                     case "/set_currency" -> {
                         try {
-                            List<List<InlineKeyboardButton>> buttons = generateDefaultCurrenciesButtons(message);
 
-                            execute(SendMessage.builder()
+
+                            SendMessage sendMessage = SendMessage.builder()
                                     .text("Please choose Original and Target currencies")
                                     .chatId(message.getChatId().toString())
                                     .replyMarkup(InlineKeyboardMarkup.builder().keyboard(buttons).build())
-                                    .build()
-                            );
+                                    .build();
+
+                            publisher.publishEvent(new SendMessageCreationEvent(sendMessage));
                         } catch (TelegramApiException e) {
                             log.error("telegram api error {e}");
                         }
@@ -43,7 +55,7 @@ public class MessageHandler {
 
                 }
             }
-        }
+        }*/
 /*        if (message.hasText()) {
             String messageText = message.getText();
             Optional<Double> value = parseDouble(messageText);
