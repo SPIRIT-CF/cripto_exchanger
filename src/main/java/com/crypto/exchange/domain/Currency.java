@@ -1,4 +1,4 @@
-package com.crypto;
+package com.crypto.exchange.domain;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -18,5 +18,10 @@ public enum Currency {
 
     public static Set<Currency> getCryptoCurrencies() {
         return Set.of(BTC, USDT, ETH);
+    }
+
+    public boolean isFiat() {
+        boolean contains = getFiatCurrencies().contains(this);
+        return contains;
     }
 }

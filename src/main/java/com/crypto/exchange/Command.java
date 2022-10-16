@@ -6,7 +6,9 @@ import lombok.Getter;
 public enum Command {
     EXCHANGE("Exchange currency"),
     SET_ORIGINAL(""),
-    SET_TARGET("");
+    SET_TARGET(""),
+    SET_CHOSEN(""),
+    DONE("");
 /*    ADMIN_TIME("", "⌚ Show bot server time"),
     ADMIN_SLACK("", "\uD83D\uDD14 Call Slack manually"),
     ADMIN_SLACK_DEBUG("", "\uD83E\uDDEA Debug Slack"),

@@ -1,7 +1,8 @@
-package com.crypto.exchange;
+package com.crypto.exchange.service;
 
 import com.crypto.exchange.annotations.BotCommand;
 import com.crypto.exchange.service.AbstractBaseHandler;
+import com.crypto.exchange.service.impl.CurrencyQuantityHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -34,11 +35,14 @@ public class HandlerOrchestrator {
                                 .getAnnotation(BotCommand.class)
                                 .command())
                         .anyMatch(c -> c.toString().equalsIgnoreCase(extractCommand(text))))
-                .findAny()
-                .orElseThrow(UnsupportedOperationException::new);
+                .findAny().orElseGet(() -> handlers.stream()
+                        .filter(CurrencyQuantityHandler.class::isInstance)
+                        .findAny()
+                        .orElseThrow(UnsupportedOperationException::new));
     }
 
     private static String extractCommand(String text) {
-        return text.split(" ")[0];
+        if (!text.isBlank()) return text.split(" ")[0];
+        else return  null;
     }
 }

@@ -1,35 +1,50 @@
 package com.crypto.exchange.service.impl;
 
 import com.crypto.exchange.annotations.BotCommand;
+import com.crypto.exchange.domain.Currency;
 import com.crypto.exchange.service.AbstractBaseHandler;
 import com.crypto.exchange.service.KeyboardButtonGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.util.List;
+import java.util.Set;
 
-import static com.crypto.exchange.Command.EXCHANGE;
+import static com.crypto.exchange.Command.*;
+import static com.crypto.exchange.Command.DONE;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@BotCommand(command = EXCHANGE)
+@BotCommand(command = {EXCHANGE, DONE})
 public class MessageHandler extends AbstractBaseHandler {
 
     private final KeyboardButtonGenerator buttonGenerator;
 
     public void handle(Long userId, Long chatId, Integer messageId, String text) {
-        List<List<InlineKeyboardButton>> buttons = buttonGenerator.generateDefaultCurrenciesButtons(chatId);
-        publish(SendMessage.builder()
-                .text("Please choose Original and Target currencies")
-                .chatId(chatId.toString())
-                .replyMarkup(InlineKeyboardMarkup.builder().keyboard(buttons).build())
-                .build());
+        switch (text) {
+            case "/exchange" -> {
+                List<Currency> currencies = List.of(Currency.values());
+                List<List<InlineKeyboardButton>> buttons = buttonGenerator.generateDefaultCurrenciesButtons(chatId, currencies, currencies);
+                publish(SendMessage.builder()
+                        .text("Please choose Original and Target currencies")
+                        .chatId(chatId.toString())
+                        .replyMarkup(InlineKeyboardMarkup.builder().keyboard(buttons).build())
+                        .build());
+            }
+            case "/DONE" -> publish(SendMessage.builder()
+                    .text("Please choose currency to be given/received and enter its quantity")
+                    .chatId(chatId.toString())
+                    .replyMarkup(InlineKeyboardMarkup.builder().keyboard(buttonGenerator.generateExchangedCurrenciesButtons(chatId)).build())
+                    .build());
+        }
+
+
+
 /*        if (message.hasText() && message.hasEntities()) {
             Optional<MessageEntity> commandEntity = message.getEntities().stream().filter(e -> "bot_command".equals(e.getType())).findFirst();
 

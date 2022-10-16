@@ -1,19 +1,17 @@
 package com.crypto.exchange.service;
 
-import com.crypto.Currency;
-import com.crypto.exchange.CurrencyModeService;
+import com.crypto.exchange.Command;
+import com.crypto.exchange.domain.Currency;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.crypto.exchange.Command.SET_ORIGINAL;
-import static com.crypto.exchange.Command.SET_TARGET;
+import static com.crypto.exchange.Command.*;
 
 @Slf4j
 @Service
@@ -22,32 +20,22 @@ public class KeyboardButtonGenerator {
 
     private final CurrencyModeService currencyModeService;
 
-    public List<List<InlineKeyboardButton>> generateDefaultCurrenciesButtons(Long chatId) {
-        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
-        Currency originalCurrency = currencyModeService.getOriginalCurrency(chatId);
-        Currency targetCurrency = currencyModeService.getTargetCurrency(chatId);
-        for (Currency currency : Currency.values()) {
-            buttons.add(
-                    Arrays.asList(
-                            InlineKeyboardButton.builder()
-                                    .text(getCurrencyButton(originalCurrency, currency))
-                                    .callbackData(SET_ORIGINAL + " " + currency)
-                                    .build(),
-                            InlineKeyboardButton.builder()
-                                    .text(getCurrencyButton(targetCurrency, currency))
-                                    .callbackData(SET_TARGET + " " + currency)
-                                    .build()));
-        }
+    public List<List<InlineKeyboardButton>> generateDefaultCurrenciesButtons(Long chatId, List<Currency> originalCurrencies, List<Currency> targetCurrencies) {
+        Currency currentOriginalCurrency = currencyModeService.getOriginalCurrency(chatId);
+        Currency currentTargetCurrency = currencyModeService.getTargetCurrency(chatId);
+
+        List<List<InlineKeyboardButton>> buttons = generateButtons(originalCurrencies, targetCurrencies, currentOriginalCurrency, currentTargetCurrency);
+
         buttons.add(
                 List.of(InlineKeyboardButton.builder()
                         .text("Done!")
-                        .callbackData("DONE")
+                        .callbackData(String.valueOf(DONE))
                         .build())
         );
         return buttons;
     }
 
-    public List<List<InlineKeyboardButton>> generateChosenCurrenciesButtons(Long chatId) {
+    public List<List<InlineKeyboardButton>> generateExchangedCurrenciesButtons(Long chatId) {
         List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
         Currency originalCurrency = currencyModeService.getOriginalCurrency(chatId);
         Currency targetCurrency = currencyModeService.getTargetCurrency(chatId);
@@ -55,16 +43,67 @@ public class KeyboardButtonGenerator {
                 Arrays.asList(
                         InlineKeyboardButton.builder()
                                 .text(originalCurrency.name())
-                                .callbackData(SET_ORIGINAL + " " + originalCurrency)
+                                .callbackData(SET_CHOSEN + " " + originalCurrency)
                                 .build(),
                         InlineKeyboardButton.builder()
                                 .text(targetCurrency.name())
-                                .callbackData(SET_ORIGINAL + " " + targetCurrency)
+                                .callbackData(SET_CHOSEN + " " + targetCurrency)
                                 .build()));
         return buttons;
     }
 
-    private String getCurrencyButton(Currency saved, Currency current) {
-        return saved == current ? current + " ✅" : current.name();
+    public List<List<InlineKeyboardButton>> generateChosenCurrenciesButtons(Long chatId) {
+        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
+        Currency originalCurrency = currencyModeService.getOriginalCurrency(chatId);
+        Currency targetCurrency = currencyModeService.getTargetCurrency(chatId);
+        Currency chosenCurrency = currencyModeService.getChosenCurrency(chatId);
+        buttons.add(
+                Arrays.asList(
+                        InlineKeyboardButton.builder()
+                                .text(getCurrencyButton(originalCurrency, chosenCurrency))
+                                .callbackData(SET_CHOSEN + " " + originalCurrency)
+                                .build(),
+                        InlineKeyboardButton.builder()
+                                .text(getCurrencyButton(targetCurrency, chosenCurrency))
+                                .callbackData(SET_CHOSEN + " " + targetCurrency)
+                                .build()));
+        return buttons;
+    }
+
+    private List<List<InlineKeyboardButton>> generateButtons(List<Currency> originalCurrencies, List<Currency> targetCurrencies, Currency currentOriginalCurrency, Currency currentTargetCurrency) {
+        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
+        for (int buttonPairNum = 0; buttonPairNum < originalCurrencies.size(); buttonPairNum++) {
+            List<InlineKeyboardButton> inlineButtons = new ArrayList<>();
+            Currency originalCurrency = originalCurrencies.get(buttonPairNum);
+
+            Currency targetCurrency = null;
+            if (buttonPairNum < targetCurrencies.size()) targetCurrency = targetCurrencies.get(buttonPairNum);
+
+            inlineButtons.add(createButton(SET_ORIGINAL, originalCurrency, currentOriginalCurrency));
+            inlineButtons.add(createButton(SET_TARGET, targetCurrency, currentTargetCurrency));
+
+            buttons.add(inlineButtons);
+        }
+        return buttons;
+    }
+
+    private InlineKeyboardButton createButton(Command command, Currency currency, Currency currentCurrency) {
+        String text = currency != null
+                ? getCurrencyButton(currency, currentCurrency)
+                : "Currency not available";
+
+        String callbackData = currency != null
+                ? command + " " + currency
+                : " ";
+
+        return InlineKeyboardButton.builder()
+                .text(text)
+                .callbackData(callbackData)
+                .build();
+    }
+
+    private String getCurrencyButton(Currency saved, Currency chosen) {
+        if (chosen == null) return " ";
+        return saved == chosen ? saved + " ✅" : saved.name();
     }
 }
