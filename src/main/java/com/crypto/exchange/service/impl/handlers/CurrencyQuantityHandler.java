@@ -1,4 +1,4 @@
-package com.crypto.exchange.service.impl;
+package com.crypto.exchange.service.impl.handlers;
 
 import com.crypto.exchange.annotations.BotCommand;
 import com.crypto.exchange.domain.Currency;

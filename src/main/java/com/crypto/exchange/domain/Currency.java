@@ -8,9 +8,10 @@ import java.util.Set;
 @Getter
 @RequiredArgsConstructor
 public enum Currency {
-    USD, EUR, RUB,
+    BTC, USDT, ETH,
+    USD, EUR, RUB;
 
-    BTC, USDT, ETH;
+
 
     public static Set<Currency> getFiatCurrencies() {
         return Set.of(USD, EUR, RUB);

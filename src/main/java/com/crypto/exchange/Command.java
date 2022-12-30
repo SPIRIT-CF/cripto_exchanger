@@ -8,6 +8,10 @@ public enum Command {
     SET_ORIGINAL(""),
     SET_TARGET(""),
     SET_CHOSEN(""),
+    SET_PAYMENT_METHOD,
+    SET_BANK,
+    SET_COUNTRY,
+    SET_CITY,
     DONE("");
 /*    ADMIN_TIME("", "⌚ Show bot server time"),
     ADMIN_SLACK("", "\uD83D\uDD14 Call Slack manually"),

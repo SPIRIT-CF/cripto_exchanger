@@ -1,8 +1,7 @@
 package com.crypto.exchange.service;
 
 import com.crypto.exchange.annotations.BotCommand;
-import com.crypto.exchange.service.AbstractBaseHandler;
-import com.crypto.exchange.service.impl.CurrencyQuantityHandler;
+import com.crypto.exchange.service.impl.handlers.CurrencyQuantityHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

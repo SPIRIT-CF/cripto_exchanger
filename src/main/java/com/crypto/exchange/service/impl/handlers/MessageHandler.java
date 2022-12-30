@@ -1,4 +1,4 @@
-package com.crypto.exchange.service.impl;
+package com.crypto.exchange.service.impl.handlers;
 
 import com.crypto.exchange.annotations.BotCommand;
 import com.crypto.exchange.domain.Currency;
@@ -12,7 +12,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.util.List;
-import java.util.Set;
 
 import static com.crypto.exchange.Command.*;
 import static com.crypto.exchange.Command.DONE;
@@ -20,7 +19,7 @@ import static com.crypto.exchange.Command.DONE;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@BotCommand(command = {EXCHANGE, DONE})
+@BotCommand(command = {EXCHANGE, DONE, SET_PAYMENT_METHOD})
 public class MessageHandler extends AbstractBaseHandler {
 
     private final KeyboardButtonGenerator buttonGenerator;
@@ -36,6 +35,12 @@ public class MessageHandler extends AbstractBaseHandler {
                         .replyMarkup(InlineKeyboardMarkup.builder().keyboard(buttons).build())
                         .build());
             }
+            case "/SET_PAYMENT_METHOD" -> publish(SendMessage.builder()
+                    .text("Please choose payment method")
+                    .chatId(chatId.toString())
+                    .replyMarkup(InlineKeyboardMarkup.builder().keyboard(buttonGenerator.generatePaymentMethodsButtons(chatId)).build())
+                    .build());
+
             case "/DONE" -> publish(SendMessage.builder()
                     .text("Please choose currency to be given/received and enter its quantity")
                     .chatId(chatId.toString())

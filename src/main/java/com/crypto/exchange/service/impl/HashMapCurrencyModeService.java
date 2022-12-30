@@ -20,12 +20,12 @@ public class HashMapCurrencyModeService implements CurrencyModeService {
 
   @Override
   public Currency getOriginalCurrency(long chatId) {
-    return originalCurrency.getOrDefault(chatId, Currency.USD);
+    return originalCurrency.getOrDefault(chatId, Currency.BTC);
   }
 
   @Override
   public Currency getTargetCurrency(long chatId) {
-    return targetCurrency.getOrDefault(chatId, Currency.USD);
+    return targetCurrency.getOrDefault(chatId, Currency.BTC);
   }
 
   @Override

@@ -1,15 +1,16 @@
 package com.crypto.exchange.service;
 
 import com.crypto.exchange.Command;
+import com.crypto.exchange.domain.Bank;
+import com.crypto.exchange.domain.City;
+import com.crypto.exchange.domain.Country;
 import com.crypto.exchange.domain.Currency;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static com.crypto.exchange.Command.*;
 
@@ -26,10 +27,14 @@ public class KeyboardButtonGenerator {
 
         List<List<InlineKeyboardButton>> buttons = generateButtons(originalCurrencies, targetCurrencies, currentOriginalCurrency, currentTargetCurrency);
 
+        Command command;
+        if (currentOriginalCurrency.isFiat() || currentTargetCurrency.isFiat()) command = SET_PAYMENT_METHOD;
+        else command = DONE;
+
         buttons.add(
                 List.of(InlineKeyboardButton.builder()
                         .text("Done!")
-                        .callbackData(String.valueOf(DONE))
+                        .callbackData(String.valueOf(command))
                         .build())
         );
         return buttons;
@@ -67,6 +72,63 @@ public class KeyboardButtonGenerator {
                                 .text(getCurrencyButton(targetCurrency, chosenCurrency))
                                 .callbackData(SET_CHOSEN + " " + targetCurrency)
                                 .build()));
+        return buttons;
+    }
+
+    public List<List<InlineKeyboardButton>> generatePaymentMethodsButtons(Long chatId) {
+        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
+
+        //TODO записать в свою мапу
+        buttons.add(
+                Arrays.asList(
+                        InlineKeyboardButton.builder()
+                                .text("Online bank transaction")
+                                .callbackData(SET_BANK + "")
+                                .build(),
+                        InlineKeyboardButton.builder()
+                                .text("Cash")
+                                .callbackData(SET_COUNTRY + "")
+                                .build()));
+        return buttons;
+    }
+
+    public List<List<InlineKeyboardButton>> generateBanksListButtons(Long chatId) {
+        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
+        for (Bank bank : Bank.values()) {
+            buttons.add(
+                    Collections.singletonList(
+                            InlineKeyboardButton.builder()
+                                    .text(bank.name())
+                                    .callbackData(SET_CHOSEN + " " + "Online")
+                                    .build()));
+        }
+        return buttons;
+    }
+
+    public List<List<InlineKeyboardButton>> generateCountriesButtons() {
+        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
+        for (Country country : Country.values()) {
+            buttons.add(
+                    Collections.singletonList(
+                            InlineKeyboardButton.builder()
+                                    .text(country.name())
+                                    .callbackData(SET_CITY + " " + country.name())
+                                    .build()));
+        }
+        return buttons;
+    }
+
+    public List<List<InlineKeyboardButton>> generateCitiesButtons(String countryName) {
+        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
+        Country country = Country.valueOf(countryName);
+        for (City city : country.getCities()) {
+            buttons.add(
+                    Collections.singletonList(
+                            InlineKeyboardButton.builder()
+                                    .text(city.name())
+                                    .callbackData(SET_CHOSEN + " " + city.name())
+                                    .build()));
+        }
         return buttons;
     }
 
